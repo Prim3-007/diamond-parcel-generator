@@ -502,9 +502,10 @@ else:
         // Update live preview box
         function updateLivePreview() {
             const data = getFormData();
-            const has_cert = data.cert.length > 0 && /\\d/.test(data.cert);
-            const is_pair = data.cert.includes('/') || data.cert.includes(',');
-            const is_lab_grown = data.cert.toUpperCase().startsWith('LG');
+            const cert_raw = (data.cert || "").trim();
+            const has_cert = cert_raw.length > 0;
+            const is_pair = cert_raw.includes('/') || cert_raw.includes(',');
+            const is_lab_grown = cert_raw.toUpperCase().startsWith('LG') || cert_raw.toUpperCase().includes('IGI') || cert_raw.toUpperCase().includes('LAB');
             const cert_label_type = is_lab_grown ? "IGI" : "GIA";
 
             // Header Text
@@ -512,7 +513,7 @@ else:
             let header_text = header_parts.filter(Boolean).join(" ");
             if (has_cert) {
                 header_text += " " + cert_label_type;
-            } else if (!data.cert) {
+            } else {
                 header_text += " GIA";
             }
             document.getElementById('prev-header').innerText = header_text;
@@ -521,9 +522,9 @@ else:
             let row1_text = "";
             const dims = data.dims || "11.76 - 11.82 x 7.38 mm";
             if (is_pair) {
-                row1_text = `Certs: ${data.cert}`;
+                row1_text = `Certs: ${cert_raw}   ${dims}`.trim();
             } else if (has_cert) {
-                row1_text = `Cert#: ${data.cert}   ${dims}`;
+                row1_text = `Cert#: ${cert_raw}   ${dims}`.trim();
             } else {
                 row1_text = dims;
             }
@@ -794,10 +795,10 @@ else:
                 const x = start_x + current_col * (label_width + col_gap);
                 const y = start_y + current_row * (label_height + row_gap);
 
-                const cert_raw = data.cert || "";
-                const has_cert = cert_raw.length > 0 && /\\d/.test(cert_raw);
+                const cert_raw = (data.cert || "").trim();
+                const has_cert = cert_raw.length > 0;
                 const is_pair = cert_raw.includes('/') || cert_raw.includes(',');
-                const is_lab_grown = cert_raw.toUpperCase().startsWith('LG');
+                const is_lab_grown = cert_raw.toUpperCase().startsWith('LG') || cert_raw.toUpperCase().includes('IGI') || cert_raw.toUpperCase().includes('LAB');
                 const cert_label_type = is_lab_grown ? "IGI" : "GIA";
 
                 // --- 1. Header Line ---
@@ -818,8 +819,10 @@ else:
                 const dims = data.dims || "";
                 if (is_pair) {
                     row1 = `Certs: ${cert_raw}`;
+                    if (dims) row1 += `     ${dims}`;
                 } else if (has_cert) {
-                    row1 = `Cert#: ${cert_raw}     ${dims}`;
+                    row1 = `Cert#: ${cert_raw}`;
+                    if (dims) row1 += `     ${dims}`;
                 } else {
                     row1 = dims;
                 }
