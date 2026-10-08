@@ -1,0 +1,111 @@
+================================================================================
+DIAMOND PARCEL LABEL GENERATOR - CURRENT PROJECT STATUS & DOCUMENTATION
+================================================================================
+
+Date: 2026-10-08
+Author: Ashwin Sonawane
+Application: Diamond Parcel Label Generator (Avery 30-Up Sheet Compatible)
+Runtime Status: ACTIVE & RUNNING (Local URL: http://localhost:8501)
+
+--------------------------------------------------------------------------------
+1. WHAT THE APPLICATION DOES
+--------------------------------------------------------------------------------
+The Diamond Parcel Label Generator is a specialized diamond industry utility 
+designed to streamline the creation, queuing, and printing of standard Avery 
+30-slot (3x10 grid) parcel paper stickers. 
+
+Key capabilities:
+- Captures complete diamond specifications (Shape, Carat, Color, Clarity, 
+  Cert/Report #, Stock #, Dimensions, Depth %, Table %, Polish, Sym, Fluor).
+- Provides a live 1:1 real-time visual preview of how the physical printed 
+  label will look as the user types.
+- Manages an in-memory queue of parcel labels with duplicate, remove, and clear 
+  operations.
+- Features an interactive 30-slot sheet visualizer allowing users to start 
+  printing from any arbitrary slot (Slot #1 to #30) so partially used sticker 
+  sheets are never wasted.
+- Automatically generates Code128 barcodes from certificate numbers or stock 
+  SKUs.
+- Compiles the print queue into a print-ready, vectorized PDF calibrated 
+  precisely to Avery 5160 / 30-label US Letter and A4 sheets with multi-page 
+  auto-pagination.
+
+--------------------------------------------------------------------------------
+2. HOW THE APPLICATION WORKS
+--------------------------------------------------------------------------------
+
+A. Architecture:
+   - Streamlit Backend (`app.py`): Hosts the application server, configures the 
+     viewport, and embeds the client-side JavaScript engine inside an optimized 
+     component iframe.
+   - Client Engine (`Parcel Paper.html` / Embedded Component): Fully standalone, 
+     zero-latency HTML5 + Tailwind CSS + Vanilla JS application running in the 
+     browser.
+
+B. Data Flow & Execution Pipeline:
+   1. Data Entry:
+      - The user enters diamond attributes or clicks a 1-click preset (GIA Round, 
+        IGI Lab-Grown, or Pair Stone).
+      - Carat, Depth, and Table values automatically format units ('CT', '%').
+   2. Live Preview:
+      - As keystrokes occur, the live preview card renders text positions and 
+        generates an instant Code128 barcode preview using `JsBarcode`.
+   3. Queue System:
+      - When clicking "+ Add Label to Queue", the diamond object is pushed to the 
+        active queue.
+      - The queue counter updates, and the 30-slot sheet grid highlights the 
+        slots that will be filled on page 1.
+   4. Sheet Calibration & Position Selection:
+      - The user can click any of the 30 visual slots (0 to 29) to designate the 
+        starting sticker position.
+      - If the starting position + queue count exceeds 30, the system displays 
+        the calculated page count and distributes stickers sequentially across 
+        pages.
+   5. PDF Generation & Auto-Pagination (`jsPDF`):
+      - When clicking "Generate & Download Avery PDF", `jsPDF` calculates exact 
+        label positions in points (pt):
+          * Label dimensions: 190 pt x 54 pt (3 cols x 10 rows).
+          * Margins: 1.4 cm top/bottom margins, 1.2 cm left shift, 2 mm right adjustment.
+          * Automatic page creation when `(start_index + i) % 30 == 0`.
+      - Text Layout Rules:
+          * Header (10pt Bold): Shape + Carat + Color + Clarity + (IGI / GIA).
+          * Row 1 (8.5pt Regular): Cert# + Dimensions (or 'Certs: ...' for pairs).
+          * Row 2 (8.5pt Regular): Depth %, Table %, Polish.
+          * Row 3 (8.5pt Regular): Fluor, Stock # (Bold), Symmetry.
+          * Barcode (Code128): Vectorized JPEG rendered at bottom of label (supports 
+            up to 2 side-by-side barcodes for split/pair certificates).
+      - The generated `.pdf` is instantly downloaded to the user's computer.
+
+C. Certificate & Stone Detection Rules:
+   - Lab-Grown Detection: If the certificate starts with 'LG' (e.g., LG589123456), 
+     the app assigns the "IGI" laboratory tag; otherwise, it assigns "GIA".
+   - Pair Stone Detection: If the cert input contains '/' or ',' (e.g., 
+     '2214556677 / 2214556678'), the app renders "Certs: ..." and generates 
+     dual side-by-side barcodes.
+
+D. Footer & Compliance:
+   - Contains the official property notice:
+     "Property of and created by Ashwin Sonawane. Unauthorised use is prohibited."
+
+--------------------------------------------------------------------------------
+3. PROJECT FILE STRUCTURE
+--------------------------------------------------------------------------------
+parcelll/
+├── app.py               # Streamlit application host
+├── requirements.txt     # Python dependencies (`streamlit>=1.35.0`)
+├── Parcel Paper.html    # Standalone HTML/Tailwind/JS parcel generator
+└── current_status.txt   # This status and technical documentation file
+
+--------------------------------------------------------------------------------
+4. HOW TO RUN & ACCESS
+--------------------------------------------------------------------------------
+1. Install Python dependencies:
+   $ pip install -r requirements.txt
+
+2. Run the application:
+   $ streamlit run app.py
+
+3. Open your browser:
+   Local URL:   http://localhost:8501
+   Network URL: http://192.168.1.161:8501
+================================================================================

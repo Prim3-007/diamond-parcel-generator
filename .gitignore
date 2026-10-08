@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.agents/
+.claude/
+.DS_Store
+.venv/
+env/
+venv/
+.streamlit/secrets.toml
